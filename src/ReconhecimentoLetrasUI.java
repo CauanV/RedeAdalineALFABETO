@@ -565,34 +565,6 @@ public class ReconhecimentoLetrasUI extends JFrame {
         return painel;
     }
 
-    // private JPanel criarSeletores() {
-    // JPanel seletores = new JPanel();
-    // seletores.setLayout(new javax.swing.BoxLayout(seletores,
-    // javax.swing.BoxLayout.Y_AXIS));
-    // seletores.setBorder(BorderFactory.createEmptyBorder(16, 2, 0, 2));
-
-    // JLabel fonteLabel = new JLabel("FONTE");
-    // fonteLabel.setFont(new Font("SansSerif", Font.BOLD, 12));
-
-    // fonte = new JComboBox<>(
-    // new String[] { "1", "2", "3" });
-    // fonte.setMaximumSize(new Dimension(76, 25));
-
-    // JLabel letraLabel = new JLabel("LETRA");
-    // letraLabel.setFont(new Font("SansSerif", Font.BOLD, 12));
-
-    // letra = new JComboBox<>(
-    // new String[] { "A", "B", "C", "D", "E", "J", "K" });
-    // letra.setMaximumSize(new Dimension(76, 25));
-
-    // seletores.add(fonteLabel);
-    // seletores.add(fonte);
-    // seletores.add(javax.swing.Box.createVerticalStrut(12));
-    // seletores.add(letraLabel);
-    // seletores.add(letra);
-
-    // return seletores;
-    // }
     private JPanel criarSeletores() {
         JPanel seletores = new JPanel();
         seletores.setLayout(
@@ -622,26 +594,48 @@ public class ReconhecimentoLetrasUI extends JFrame {
         return seletores;
     }
 
+    // private void atualizarGradeTreinamento() {
+    // if (fonte == null || letra == null || gradeTreinamento == null) {
+    // return;
+    // }
+
+    // String[] letras = { "A", "B", "C", "D", "E", "J", "K" };
+    // int indiceFonte = Integer.parseInt((String) fonte.getSelectedItem()) - 1;
+    // int indiceLetra = java.util.Arrays.asList(letras)
+    // .indexOf(letra.getSelectedItem());
+    // int indicePadrao = indiceFonte * letras.length + indiceLetra;
+    // double[] padrao = RedeAdaline.X_matrizTreinamento[indicePadrao];
+
+    // for (int linha = 0; linha < LINHAS; linha++) {
+    // for (int coluna = 0; coluna < COLUNAS; coluna++) {
+    // int indicePixel = linha * COLUNAS + coluna;
+    // gradeTreinamento.setValueAt(
+    // padrao[indicePixel] > 0 ? "#" : "·",
+    // linha,
+    // coluna);
+    // }
+    // }
+    // }
+
     private void atualizarGradeTreinamento() {
-        if (fonte == null || letra == null || gradeTreinamento == null) {
-            return;
-        }
+        int indiceFonte = fonte.getSelectedIndex();// se for por exemplo A na fonte 1 sera indicefonte{0} e letra{0}
+                                                   // pois A e a primeira
+        int indiceLetra = letra.getSelectedIndex();
+        int posicao = 0;// comeca com a posicao em zero pq vai percorrer a linha inteira coluna a coluna
 
-        String[] letras = { "A", "B", "C", "D", "E", "J", "K" };
-        int indiceFonte = Integer.parseInt((String) fonte.getSelectedItem()) - 1;
-        int indiceLetra = java.util.Arrays.asList(letras)
-                .indexOf(letra.getSelectedItem());
-        int indicePadrao = indiceFonte * letras.length + indiceLetra;
-        double[] padrao = RedeAdaline.X_matrizTreinamento[indicePadrao];
-
-        for (int linha = 0; linha < LINHAS; linha++) {
-            for (int coluna = 0; coluna < COLUNAS; coluna++) {
-                int indicePixel = linha * COLUNAS + coluna;
-                gradeTreinamento.setValueAt(
-                        padrao[indicePixel] > 0 ? "#" : "·",
-                        linha,
-                        coluna);
+        int linha = indiceFonte * 7 + indiceLetra; // Isso significa que cada fonte tem 7 letras, então para obter a
+                                                   // linha correta na matriz de treinamento, multiplicamos o índice da
+                                                   // fonte por 7 e adicionamos o índice da letra.
+        for (int i = 0; i < LINHAS; i++) {
+            for (int j = 0; j < COLUNAS; j++) {
+                if (RedeAdaline.X_matrizTreinamento[linha][posicao] == 1) {
+                    gradeTreinamento.setValueAt("#", i, j);
+                } else {
+                    gradeTreinamento.setValueAt(".", i, j);
+                }
+                posicao++;
             }
+
         }
     }
 
@@ -913,12 +907,20 @@ public class ReconhecimentoLetrasUI extends JFrame {
             tabela.addMouseListener(new MouseAdapter() {
                 @Override
                 public void mouseClicked(MouseEvent evento) {
+
                     int linha = tabela.rowAtPoint(evento.getPoint());
                     int coluna = tabela.columnAtPoint(evento.getPoint());
 
-                    if (linha >= 0 && coluna >= 0) {
+                    if (linha >= 0 && coluna >= 0) {// Não existe uma ordem de prioridade, contanto que seja um ciclo
+                                                    // fechado.
                         String atual = tabela.getValueAt(linha, coluna).toString();
-                        tabela.setValueAt("#".equals(atual) ? "·" : "#", linha, coluna);
+                        if (atual.equals("·")) {
+                            tabela.setValueAt("#", linha, coluna);
+                        } else if (atual.equals("#")) {
+                            tabela.setValueAt("0", linha, coluna);
+                        } else {
+                            tabela.setValueAt("·", linha, coluna);
+                        }
                     }
                 }
             });
@@ -973,7 +975,8 @@ public class ReconhecimentoLetrasUI extends JFrame {
 
     }
 
-    private double[] lerGradeTeste() {
+    private double[] lerGradeTeste() { // aqui literalmente le a grade de pixeis e converte os # ou pontos em 1 ou -1 e
+                                       // coloca em um vetor de 64 posicoes
         double[] vetor = new double[64];
         int posicao = 0;
 
@@ -983,8 +986,10 @@ public class ReconhecimentoLetrasUI extends JFrame {
 
                 if ("#".equals(celula)) {
                     vetor[posicao] = 1;
-                } else {
+                } else if ("·".equals(celula)) {
                     vetor[posicao] = -1;
+                } else {
+                    vetor[posicao] = 0;
                 }
                 posicao++;
             }
@@ -1003,7 +1008,7 @@ public class ReconhecimentoLetrasUI extends JFrame {
             } catch (Exception ignored) {
             }
 
-            new ReconhecimentoLetrasUIcopy().setVisible(true);
+            new ReconhecimentoLetrasUI().setVisible(true);
         });
     }
 }

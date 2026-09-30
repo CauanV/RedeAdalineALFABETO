@@ -14,5 +14,18 @@ public class App {
             System.out.println("Foto " + k + " -> " + RedeAdaline.testar(RedeAdaline.X_matrizTreinamento[k]).trim());
         }
 
+        // printando a matriz de treinamento
+        System.out.println("Matriz de Treinamento:");
+        for (int i = 0; i < RedeAdaline.X_matrizTreinamento.length; i++) {
+            System.out.println(
+                    "***********************************************************************************************************************");
+            for (int j = 0; j < RedeAdaline.X_matrizTreinamento[i].length; j++) {
+                System.out.print(RedeAdaline.X_matrizTreinamento[i][j] + " ");
+                // separacao entre as linhas da matriz
+
+            }
+            System.out.println();
+        }
+
     }
 }
